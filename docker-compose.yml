@@ -1,0 +1,20 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: aib-notes:latest
+    command: gunicorn project.wsgi:application --bind 0.0.0.0:8000
+    environment:
+      - DJANGO_SETTINGS_MODULE=project.settings
+      - PORT=8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./db.sqlite3:/app/db.sqlite3
+      - model_cache:/root/.cache
+    restart: unless-stopped
+
+volumes:
+  model_cache:
+

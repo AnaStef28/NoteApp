@@ -1,0 +1,140 @@
+{% extends "admin/change_list.html" %}
+{% load static %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <style>
+        /* ROOT VARIABLES GUIDE:
+           We use Django's native variables (available in Django 4.2+).
+           These automatically swap hex codes when the user toggles the theme.
+        */
+
+        .semantic-search-form {
+            /* Dark mode: becomes dark grey (#212529). Light mode: light grey (#f8f9fa) */
+            background: var(--darkened-bg); 
+            
+            /* Border color adapts automatically */
+            border: 1px solid var(--hairline-color);
+            
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+            
+            /* Main text color adapts (White <-> Black) */
+            color: var(--body-fg);
+        }
+
+        .semantic-search-form h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            /* Use generic body foreground color so it's always visible */
+            color: var(--body-fg); 
+        }
+
+        .semantic-search-input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .semantic-search-input {
+            flex: 1;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            
+            /* THE CRITICAL PART FOR DARK MODE:
+               Use --body-bg so the input is black in dark mode, white in light mode.
+            */
+            background: var(--body-bg);
+            color: var(--body-fg);
+            border: 1px solid var(--border-color);
+        }
+        
+        .semantic-search-input::placeholder {
+            /* Use a muted color variable if available, otherwise hardcode a safe grey */
+            color: #aaa; 
+            opacity: 0.7;
+        }
+
+        .semantic-search-btn {
+            padding: 8px 16px;
+            
+            /* Use Django's button variables */
+            background: var(--button-bg);
+            color: var(--button-fg);
+            
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        .semantic-search-btn:hover {
+            background: var(--button-hover-bg);
+        }
+
+        /* ---------------------------------------------------------
+           INFO BOX HANDLING
+           Django doesn't have a "Info Box" variable, so we define 
+           colors for Light Mode, then override for Dark Mode.
+           --------------------------------------------------------- */
+        .semantic-search-info {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            border-left: 4px solid #3b82f6; /* Bright Blue Border */
+            
+            /* Default (Light Mode) Look */
+            background: #eff6ff; /* Very light blue */
+            color: #1e40af;      /* Dark Blue text */
+        }
+
+        /* Targeting Django's Dark Mode. 
+           Django applies [data-theme="dark"] to the HTML tag, 
+           or uses media queries. We target both to be safe.
+        */
+        @media (prefers-color-scheme: dark) {
+            .semantic-search-info {
+                background: #1e293b; /* Dark Slate Blue */
+                color: #bfdbfe;      /* Light Blue text */
+                border-left-color: #60a5fa;
+            }
+        }
+
+        [data-theme="dark"] .semantic-search-info {
+            background: #1e293b; 
+            color: #bfdbfe;      
+            border-left-color: #60a5fa;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="semantic-search-form">
+        <h3>🔍 Semantic Search (AI-Powered)</h3>
+        <p style="margin-bottom: 10px; font-size: 13px; opacity: 0.8;">
+            Search notes by meaning, not just keywords. Uses AI embeddings to find semantically similar notes.
+        </p>
+        <form method="get" action="" class="semantic-search-input-group">
+            <input 
+                type="text" 
+                name="q" 
+                value="{{ semantic_search_query|default:'' }}" 
+                placeholder="Enter your search query..."
+                class="semantic-search-input"
+            >
+            <button type="submit" class="semantic-search-btn">Search</button>
+            {% if semantic_search_query %}
+            <a href="{% url 'admin:notes_note_changelist' %}" class="semantic-search-btn" style="text-decoration: none; background: #6c757d;">Clear</a>
+            {% endif %}
+        </form>
+        {% if semantic_search_query %}
+        <div class="semantic-search-info">
+            <strong>Active semantic search:</strong> "{{ semantic_search_query }}"
+        </div>
+        {% endif %}
+    </div>
+    {{ block.super }}
+{% endblock %}
