@@ -4,10 +4,6 @@
 {% block extrahead %}
     {{ block.super }}
     <style>
-        /* ROOT VARIABLES GUIDE:
-           We use Django's native variables (available in Django 4.2+).
-           These automatically swap hex codes when the user toggles the theme.
-        */
 
         .semantic-search-form {
             /* Dark mode: becomes dark grey (#212529). Light mode: light grey (#f8f9fa) */
@@ -41,10 +37,7 @@
             padding: 8px 12px;
             border-radius: 4px;
             font-size: 14px;
-            
-            /* THE CRITICAL PART FOR DARK MODE:
-               Use --body-bg so the input is black in dark mode, white in light mode.
-            */
+
             background: var(--body-bg);
             color: var(--body-fg);
             border: 1px solid var(--border-color);
@@ -74,40 +67,22 @@
             background: var(--button-hover-bg);
         }
 
-        /* ---------------------------------------------------------
-           INFO BOX HANDLING
-           Django doesn't have a "Info Box" variable, so we define 
-           colors for Light Mode, then override for Dark Mode.
-           --------------------------------------------------------- */
         .semantic-search-info {
             margin-top: 10px;
             padding: 10px;
             border-radius: 4px;
             font-size: 13px;
-            border-left: 4px solid #3b82f6; /* Bright Blue Border */
-            
-            /* Default (Light Mode) Look */
-            background: #eff6ff; /* Very light blue */
-            color: #1e40af;      /* Dark Blue text */
+            border-left: 4px solid #3b82f6; 
+            background: var(--body-bg);
+            color: var(--body-fg);
         }
-
-        /* Targeting Django's Dark Mode. 
-           Django applies [data-theme="dark"] to the HTML tag, 
-           or uses media queries. We target both to be safe.
-        */
-        @media (prefers-color-scheme: dark) {
-            .semantic-search-info {
-                background: #1e293b; /* Dark Slate Blue */
-                color: #bfdbfe;      /* Light Blue text */
-                border-left-color: #60a5fa;
-            }
-        }
-
         [data-theme="dark"] .semantic-search-info {
             background: #1e293b; 
-            color: #bfdbfe;      
+            color: #bfdbfe !important;     
             border-left-color: #60a5fa;
         }
+
+
     </style>
 {% endblock %}
 
