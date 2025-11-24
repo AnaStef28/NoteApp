@@ -2,11 +2,13 @@ from django import forms
 from django.contrib import admin
 from django.utils.html import format_html
 from django.contrib import messages
-from django.urls import reverse
+from django.urls import reverse, path
+from django.http import JsonResponse
 from django.db import models
 from django.db.models import Case, When, IntegerField, Value
 from .models import Note
-from .utils import generate_embedding  # Removed unused cosine_similarity
+from .utils import generate_embedding, cosine_similarity
+from .services import SemanticSearchService, AIService
 import numpy as np
 import json
 
@@ -67,7 +69,7 @@ class NoteAdmin(admin.ModelAdmin):
         content_length = len(obj.content) if obj.content else 0
         updated = obj.updated_at.strftime('%b %d, %Y · %H:%M')
         return format_html(
-            '<a href="{}" style="font-weight:600; color:#2c3e50;">{}</a><br><small style="color:#6f7a87;">{} chars</small>',
+            '<a href="{}" style="font-weight:600;">{}</a><br><small style="color:#6f7a87;">{} chars</small>',
             url, title, content_length
         )
     title_display.short_description = 'Title'
@@ -212,3 +214,58 @@ class NoteAdmin(admin.ModelAdmin):
         extra_context = extra_context or {}
         extra_context['semantic_search_query'] = request.GET.get('q', '')
         return super().changelist_view(request, extra_context)
+    
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('ai-assistant/', self.admin_site.admin_view(self.ai_assistant_view), name='notes_note_ai_assistant'),
+        ]
+        return custom_urls + urls
+    
+    def ai_assistant_view(self, request):
+        """Handle AI assistant questions via AJAX."""
+        if request.method != 'POST':
+            return JsonResponse({'answer': 'Only POST requests are allowed.'}, status=405)
+        
+        try:
+            import json as json_module
+            data = json_module.loads(request.body)
+            question = data.get('question', '').strip()
+            
+            if not question:
+                return JsonResponse({'answer': 'Please enter a question.'}, status=200)
+            
+            # Find relevant notes using semantic search service
+            relevant_results = SemanticSearchService.find_relevant_notes(question, top_k=3)
+            
+            if not relevant_results:
+                return JsonResponse({
+                    'answer': "I couldn't find any relevant notes to answer your question. "
+                             "Try asking about something that might be in your notes."
+                }, status=200)
+            
+            # Extract note contents
+            top_notes = [content for _, _, content in relevant_results]
+            
+            # Generate answer using AI (Gemma if available, otherwise simple)
+            answer = AIService.generate_answer(question, top_notes)
+            
+            # Ensure answer is not empty
+            if not answer or not answer.strip():
+                answer = (
+                    "Based on your notes, I found relevant information but couldn't generate "
+                    "a clear answer. Here's what I found:\n\n" + 
+                    "\n\n".join([f"• {note[:200]}..." if len(note) > 200 else f"• {note}" 
+                                for note in top_notes[:2]])
+                )
+            
+            return JsonResponse({'answer': answer}, status=200)
+            
+        except json.JSONDecodeError as e:
+            return JsonResponse({'answer': f'Invalid request format: {str(e)}'}, status=200)
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return JsonResponse({
+                'answer': f'Sorry, I encountered an error: {str(e)}'
+            }, status=200)

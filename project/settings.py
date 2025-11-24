@@ -57,7 +57,7 @@ ROOT_URLCONF = 'project.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'project' / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -190,4 +190,3 @@ LOGGING = {
 import os
 logs_dir = BASE_DIR / 'logs'
 os.makedirs(logs_dir, exist_ok=True)
-

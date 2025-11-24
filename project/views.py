@@ -2,6 +2,8 @@
 Health check and monitoring views.
 """
 from django.http import JsonResponse
+from django.shortcuts import render
+from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.http import require_http_methods
 from django.db import connection
 from notes.models import Note
@@ -96,4 +98,48 @@ def metrics(request):
         pass
     
     return JsonResponse(metrics_data)
+
+
+@require_http_methods(["GET"])
+def about(request):
+    """
+    About page displaying project information and contributors.
+    """
+    contributors = [
+        "Anamaria Stefanescu",
+        "Paul Trescovan",
+        "Mincic Denis",
+        "Marta Rares",
+        "Andrei Piscoran",
+    ]
+    
+    context = {
+        'contributors': contributors,
+    }
+    
+    return render(request, 'about.html', context)
+
+
+@staff_member_required
+def admin_about(request):
+    """
+    About page integrated into the admin interface.
+    """
+    contributors = [
+        "Anamaria Stefanescu",
+        "Paul Trescovan",
+        "Mincic Denis",
+        "Marta Rares",
+        "Andrei Piscoran",
+    ]
+    
+    context = {
+        'contributors': contributors,
+        'title': 'About AI Notes',
+        'site_header': 'AI Notes Administration',
+        'site_title': 'AI Notes Admin',
+        'has_permission': True,
+    }
+    
+    return render(request, 'admin/about.html', context)
 
