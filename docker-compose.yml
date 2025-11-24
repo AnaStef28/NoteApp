@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
     image: aib-notes:latest
-    command: gunicorn project.wsgi:application --bind 0.0.0.0:8000
+    command: sh -c "gunicorn project.wsgi:application --bind 0.0.0.0:$${PORT:-8000}"
     environment:
       - DJANGO_SETTINGS_MODULE=project.settings
       - PORT=8000
