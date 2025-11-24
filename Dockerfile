@@ -25,7 +25,14 @@ RUN python -m pip install --upgrade pip \
 
 COPY . /app
 
+# Run collectstatic
+RUN python manage.py collectstatic --noinput
+
+# Run migrations
+RUN python manage.py migrate --noinput
+
+
 EXPOSE 8000
 
-CMD ["python", "-m", "gunicorn", "project.wsgi:application", "--bind", "0.0.0.0:${PORT:-8000}"]
+CMD python -m gunicorn project.wsgi:application --bind 0.0.0.0:${PORT:-8000}
 
